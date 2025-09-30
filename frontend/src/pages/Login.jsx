@@ -12,8 +12,6 @@
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        const res = await axios.post("http://26.1.224.212:8080/users/login", { email, password });
-        // сохраняем JWT в localStorage
         if(res.data.token){
           localStorage.setItem("token", res.data.token);
           toast.success("✅ Loginned successfully!");

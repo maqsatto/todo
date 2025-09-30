@@ -32,8 +32,16 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	token, err := utils.GenerateJWT(user.Email, JwtKey)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Could not generate token"})
+		return
+	}
 	DB.Create(&user)
-	c.JSON(http.StatusOK, user)
+	c.JSON(200, gin.H{
+		"token": token,
+		"user":  user,
+	})
 }
 func Login(c *gin.Context) {
 	var user models.User
@@ -60,5 +68,9 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"token": token})
+	c.JSON(200, gin.H{
+		"token": token,
+		"user":  user,
+	})
+
 }

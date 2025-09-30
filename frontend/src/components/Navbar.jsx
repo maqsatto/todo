@@ -26,7 +26,7 @@ const Navbar = () => {
           ))
         }
       </ul>
-
+        <div>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illum similique omnis obcaecati architecto cupiditate eum inventore, nobis iusto qui voluptatem dolor facilis harum dolores voluptatum quibusdam tempora quod nulla facere nemo, veniam ab? Cumque officiis repellat veniam laudantium delectus necessitatibus possimus quidem vel nisi ab voluptas debitis, odit temporibus sequi?</div>
       <div className='flex items-center gap-6'>
         {/* <img src={assets.search_icon} alt="search_icon" className='w-5 cursor-pointer'/> */}
         <div className='group relative'>

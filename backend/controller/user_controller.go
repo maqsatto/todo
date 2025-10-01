@@ -23,12 +23,13 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	// Проверка пароля и юзернейма
 	if len(user.Password) < 6 {
-		c.JSON(400, gin.H{"error": "Password must contain at least 6 characters"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password must contain at least 6 characters"})
 		return
 	}
 	if len(user.Username) < 3 {
-		c.JSON(400, gin.H{"error": "Username must be at least 3 characters"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username must be at least 3 characters"})
 		return
 	}
 
@@ -38,20 +39,32 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	hashedPassword, err := utils.HashPassword(user.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not hash password"})
+		return
+	}
+	user.Password = hashedPassword
+
 	if err := DB.Create(&user).Error; err != nil {
-		c.JSON(500, gin.H{"error": "Could not create user"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create user"})
 		return
 	}
 
 	token, err := utils.GenerateJWT(user, JwtKey)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "Could not generate token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
 		return
 	}
-	DB.Create(&user)
-	c.JSON(200, gin.H{
+
+	c.JSON(http.StatusOK, gin.H{
 		"token": token,
-		"user":  user,
+		"user": gin.H{
+			"id":       user.ID,
+			"username": user.Username,
+			"email":    user.Email,
+			"img":      user.Pfp,
+		},
 	})
 }
 
@@ -67,12 +80,12 @@ func Login(c *gin.Context) {
 	}
 
 	if err := DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
-		c.JSON(401, gin.H{"error": "Something is wrong"})
+		c.JSON(401, gin.H{"error": "Invalid email or password"})
 		return
 	}
 
-	if user.Password != input.Password {
-		c.JSON(401, gin.H{"error": "Something is wrong"})
+	if !utils.CheckPasswordHash(input.Password, user.Password) {
+		c.JSON(401, gin.H{"error": "Invalid email or password"})
 		return
 	}
 
@@ -86,6 +99,50 @@ func Login(c *gin.Context) {
 		"token": token,
 		"user":  user,
 	})
+}
+
+func UpdatePassword(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	var input struct {
+		OldPassword string `json:"old_password"`
+		NewPassword string `json:"new_password"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(input.NewPassword) < 6 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "New password must be at least 6 characters"})
+		return
+	}
+
+	var user models.User
+	if err := DB.First(&user, userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	if !utils.CheckPasswordHash(input.OldPassword, user.Password) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Old password is incorrect"})
+		return
+	}
+
+	hashedPassword, err := utils.HashPassword(input.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not hash password"})
+		return
+	}
+	user.Password = hashedPassword
+
+	DB.Save(&user)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
 }
 
 func UpdateUsername(c *gin.Context) {
@@ -117,49 +174,6 @@ func UpdateUsername(c *gin.Context) {
 	DB.Save(&user)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Username updated", "user": user})
-}
-
-func UpdatePassword(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
-		return
-	}
-
-	var input struct {
-		OldPassword string `json:"old_password"`
-		NewPassword string `json:"new_password"`
-	}
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if len(input.NewPassword) < 6 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "New password must be at least 6 characters"})
-		return
-	}
-
-	var user models.User
-	if err := DB.First(&user, userID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
-
-	if user.Password != input.OldPassword {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Old password is incorrect"})
-		return
-	}
-
-	if user.Password == input.NewPassword {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "New password cannot be the same as the old one"})
-		return
-	}
-
-	user.Password = input.NewPassword
-	DB.Save(&user)
-
-	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
 }
 
 func UpdatePFP(c *gin.Context) {

@@ -16,8 +16,14 @@ func UserRoutes(r *gin.Engine) {
 
 	protected := r.Group("/profile")
 	protected.Use(middleware.AuthMiddleware())
-	protected.GET("/", func(c *gin.Context) {
-		email := c.GetString("email")
-		c.JSON(200, gin.H{"message": "Hello " + email})
-	})
+	{
+		protected.GET("/", func(c *gin.Context) {
+			email := c.GetString("email")
+			c.JSON(200, gin.H{"message": "Hello " + email})
+		})
+
+		protected.PUT("/username", controller.UpdateUsername)
+		protected.PUT("/password", controller.UpdatePassword)
+		protected.PUT("/pfp", controller.UpdatePFP)
+	}
 }

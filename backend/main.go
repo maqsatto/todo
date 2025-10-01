@@ -3,12 +3,12 @@ package main
 import (
 	"backend/config"
 	"backend/controller"
+	"backend/middleware"
 	"backend/routes"
-	"log"
-	"os"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"log"
+	"os"
 )
 
 func main() {
@@ -16,10 +16,11 @@ func main() {
 	controller.InitTodoController(config.DB)
 
 	r := gin.Default()
+	r.RedirectTrailingSlash = false
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://26.1.224.212:3000", "http://26.176.162.130:3000", "http://localhost:3000"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
@@ -31,7 +32,10 @@ func main() {
 	routes.TodoRoutes(r)
 	routes.UserRoutes(r)
 
+	jwtKey := []byte(os.Getenv("JWT_KEY"))
 	port := os.Getenv("PORT")
+
+	middleware.InitAuth(jwtKey)
 	if port == "" {
 		port = "8080"
 	}

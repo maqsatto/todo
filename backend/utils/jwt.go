@@ -1,20 +1,23 @@
 package utils
 
 import (
+	"backend/models"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
 type Claims struct {
-	Email string `json:"email"`
+	UserID uint   `json:"user_id"`
+	Email  string `json:"email"`
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(email string, jwtKey []byte) (string, error) {
+func GenerateJWT(user models.User, jwtKey []byte) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
-		Email: email,
+		Email:  user.Email,
+		UserID: user.ID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

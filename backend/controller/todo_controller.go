@@ -21,14 +21,41 @@ func CreateTodo(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	if todo.Title == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Todo title cannot be empty"})
+		return
+	}
+
+	todo.UserID = userID.(uint)
+
 	DB.Create(&todo)
 	c.JSON(http.StatusOK, todo)
 }
 
 func GetTodos(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
 	var todos []models.Todo
-	DB.Find(&todos)
-	c.JSON(http.StatusOK, todos)
+
+	if err := DB.Where("user_id = ?", userID.(uint)).Find(&todos).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch todos"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Todos fetch successfully",
+		"todos":   todos,
+	})
 }
 
 func UpdateTodo(c *gin.Context) {
@@ -37,6 +64,12 @@ func UpdateTodo(c *gin.Context) {
 
 	if err := DB.First(&todo, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Todo not found"})
+		return
+	}
+
+	userID, exists := c.Get("user_id")
+	if !exists || todo.UserID != userID.(uint) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not allowed to update this todo"})
 		return
 	}
 
@@ -55,6 +88,12 @@ func DeleteTodo(c *gin.Context) {
 
 	if err := DB.First(&todo, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Todo not found"})
+		return
+	}
+
+	userID, exists := c.Get("user_id")
+	if !exists || todo.UserID != userID.(uint) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not allowed to delete this todo"})
 		return
 	}
 

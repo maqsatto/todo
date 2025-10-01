@@ -30,7 +30,7 @@ const Register = () => {
           <input className='border rounded outline-none px-4 py-2' type="Text" placeholder="Username" onChange={(e) => setUsername(e.target.value)} required />
           <input className='border rounded outline-none px-4 py-2' type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required />
           <input className='border rounded outline-none px-4 py-2' type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} required />
-          <button type="submit" className='border px-2 border-orange-400 bg-orange-400 rounded-xl mt-7 text-white py-[5px] w-36 m-auto font-medium transition-all duration-200 hover:bg-transparent hover:text-orange-400'>Register</button>
+          <button type="submit" className='border px-2 border-orange-400 bg-orange-400 rounded-xl mt-7 text-white py-[5px] w-36 m-auto font-medium transition-all duration-200 ease-linear hover:bg-transparent hover:text-orange-400'>Register</button>
           <p className='text-sm text-gray-500'>Do you have an account? <Link to="/login" className='text-blue-600 underline'>Click here</Link></p>
           
       </form>

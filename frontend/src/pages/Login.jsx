@@ -34,7 +34,7 @@
           <h1 className='text-4xl mb-5 font-bold text-orange-400'>Login</h1>
           <input className='border rounded outline-none px-4 py-2' type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required />
           <input className='border rounded outline-none px-4 py-2' type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} required />
-          <button type="submit" className='border border-orange-400 px-2 bg-orange-400 rounded-xl mt-7 text-white py-[5px] w-36 m-auto font-medium transition-all duration-200 hover:bg-transparent hover:text-orange-400'>Login</button>
+          <button type="submit" className='border border-orange-400 px-2 bg-orange-400 rounded-xl mt-7 text-white py-[5px] w-36 m-auto font-medium transition-all duration-200 ease-linear hover:bg-transparent hover:text-orange-400'>Login</button>
           <p className='text-sm text-gray-500'>Don't have an account? <Link to="/register" className='text-blue-600 underline'>Click here</Link></p>
           
       </form>

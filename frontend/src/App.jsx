@@ -6,11 +6,12 @@ import Navbar from "./components/Navbar.jsx"
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Register from './pages/Register.jsx'
-const App = () => {
+import Profile from './pages/Profile.jsx'
+const App = () => { 
 
   const location = useLocation();
 
-  const hideNavbarRoutes = ["/login", "/register"]
+  const hideNavbarRoutes = ["/login", "/register", "/profile"]
 
   const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname)
 
@@ -22,6 +23,7 @@ const App = () => {
         <Route path='/' element={<Home/>} />
         <Route path='/login' element={<Login/>} />
         <Route path='/register' element={<Register/>} />
+        <Route path='/profile' element={<Profile/>} />
       </Routes>
     </div>
   )

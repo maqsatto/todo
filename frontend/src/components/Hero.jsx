@@ -6,6 +6,8 @@ import { assets } from "../assets/assets.js";
 const Hero = () => {
   const [title, setTitle] = useState("");
   const [todos, setTodos] = useState([]);
+  const [editingId, setEditingId] = useState(null);   // 🆕 қай todo редакт жасап тұр
+  const [editingTitle, setEditingTitle] = useState(""); // 🆕 input-тағы мәтін
 
   const token = localStorage.getItem("token");
 
@@ -25,7 +27,6 @@ const Hero = () => {
     }
   };
 
-  // Добавить todo
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -45,9 +46,7 @@ const Hero = () => {
     }
   };
 
-  // Обновить статус completed
   const toggleTodo = async (id, completed) => {
-    // оптимистично обновляем
     const updated = todos.map(t => t.id === id ? { ...t, completed: !completed } : t);
     setTodos(updated);
 
@@ -59,11 +58,10 @@ const Hero = () => {
       );
     } catch (err) {
       toast.error("❌ Failed to update todo!");
-      fetchTodos(); // откатим с бэка
+      fetchTodos();
     }
   };
 
-  // Удалить todo
   const deleteTodo = async (id) => {
     try {
       await axios.delete(`http://26.1.224.212:8080/todos/${id}`, {
@@ -76,9 +74,27 @@ const Hero = () => {
     }
   };
 
+  // 🆕 update todo title
+  const updateTodo = async (id) => {
+    if (!editingTitle.trim()) return;
+
+    try {
+      await axios.put(
+        `http://26.1.224.212:8080/todos/${id}`,
+        { title: editingTitle },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("✏️ Todo updated!");
+      setEditingId(null);
+      setEditingTitle("");
+      fetchTodos();
+    } catch (err) {
+      toast.error("❌ Failed to update todo!");
+    }
+  };
+
   return (
-    <div className='shadow-[0px_5px_15px_rgba(0,0,0,0.35)] rounded-2xl flex flex-col gap-9 py-7 px-10 max-h-[450px] overflow-auto'>
-      {/* Форма */}
+    <div className='shadow-[0px_5px_15px_rgba(0,0,0,0.35)] rounded-2xl flex flex-col gap-9 py-7 px-10 max-h-[480px] min-h-[480px] 2xl:min-h-[510px] sm:min-h-[480px] overflow-auto'>
       <div className='flex flex-col items-center'>
         <form onSubmit={handleSubmit} className='flex items-center justify-center gap-10'>
           <input
@@ -90,14 +106,13 @@ const Hero = () => {
           />
           <button
             type='submit'
-            className='border border-amber-600 px-[20px] bg-orange-400 rounded text-white py-2 w-36 m-auto text-[17px] font-medium transition-all duration-200 hover:bg-transparent hover:text-orange-400'
+            className='border border-amber-600 px-[20px] bg-orange-400 rounded text-white py-2 w-36 m-auto text-[17px] font-medium transition-all duration-200 ease-linear hover:bg-transparent hover:text-orange-400'
           >
             Add
           </button>
         </form>
       </div>
 
-      {/* Список todos */}
       <div>
         {todos.map((t) => (
           <div key={t.id} className='flex items-center justify-between'>
@@ -108,17 +123,42 @@ const Hero = () => {
                 onChange={() => toggleTodo(t.id, t.completed)}
                 className='mb-5'
               />
-              <p className={`text-xl font-semibold mb-5 ${t.completed ? "line-through italic text-gray-400" : "text-gray-700"}`}>
-                {t.title}
-              </p>
+
+              {editingId === t.id ? (
+                <input
+                  type="text"
+                  value={editingTitle}
+                  onChange={(e) => setEditingTitle(e.target.value)}
+                  className="border px-2 py-1 rounded mb-5 outline-none"
+                />
+              ) : (
+                <p className={`text-xl font-semibold mb-5 ${t.completed ? "line-through italic text-gray-400" : "text-gray-700"}`}>
+                  {t.title}
+                </p>
+              )}
             </div>
+
             <div className='ml-10 flex gap-2'>
-              <img
-                className='w-5 cursor-pointer'
-                src={assets.exchange_icon}
-                alt="update"
-                onClick={() => toggleTodo(t.id, t.completed)}
-              />
+              {editingId === t.id ? (
+                // 🆕 егер редакт жасап жатса, "Save" батырмасы
+                <button
+                  onClick={() => updateTodo(t.id)}
+                  className="bg-orange-400 border border-orange-400 text-white px-2 rounded transition-all duration-200 ease-linear hover:bg-transparent hover:text-orange-400"
+                >
+                  Save
+                </button>
+              ) : (
+                <img
+                  className='w-5 cursor-pointer'
+                  src={assets.exchange_icon}
+                  alt="update"
+                  onClick={() => {
+                    setEditingId(t.id);
+                    setEditingTitle(t.title);
+                  }}
+                />
+              )}
+
               <img
                 className='w-5 cursor-pointer'
                 src={assets.bin_icon}

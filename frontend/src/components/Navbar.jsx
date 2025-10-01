@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { NavLink, Link } from "react-router-dom"
+import { NavLink, Link, useNavigate } from "react-router-dom"
 import { menuLinks, assets } from "../assets/assets.js"
 
 const Navbar = () => {
   const [visible, setVisible] = useState(false)
   const [token, setToken] = useState(null)
+  const navigate = useNavigate()
 
   // Check localStorage on mount
   useEffect(() => {
@@ -46,8 +47,7 @@ const Navbar = () => {
               <img src={assets.profile_icon} alt="profile_icon" className='w-5 cursor-pointer'/>
               <div className='group-hover:flex hidden absolute dropdown-menu right-0 pt-4'>
                 <div className='flex bg-slate-100 flex-col w-36 py-3 px-5 gap-2 text-gray-500 rounded'>
-                  <p className='cursor-pointer hover:text-black'>My Profile</p>
-                  <p className='cursor-pointer hover:text-black'>ToDo</p>
+                  <p className='cursor-pointer hover:text-black' onClick={() => navigate("/profile")}>My Profile</p>
                   <p className='cursor-pointer hover:text-black' onClick={handleLogout}>Logout</p>
                 </div>
               </div>
